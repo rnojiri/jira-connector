@@ -132,6 +132,7 @@ var worklog = require('./api/worklog');
  *      Default - native Promise.
  * @param {Request} [config.request] Any function (constructor) compatible with Request (request, supertest,...).
  *      Default - require('request').
+ * @param {int} [config.requestTimeout] Sets the maximum time in milliseconds to wait for Jira API to return.
  */
 
 var JiraClient = module.exports = function (config) {
@@ -148,7 +149,8 @@ var JiraClient = module.exports = function (config) {
     this.webhookApiVersion = '1.0';
     this.promise = config.promise || Promise;
     this.requestLib = config.request || request;
-    this.rejectUnauthorized = config.rejectUnauthorized;
+	this.rejectUnauthorized = config.rejectUnauthorized;
+	this.requestTimeout = config.requestTimeout && config.requestTimeout >= 0 ? config.requestTimeout : null;
 
     if (config.oauth) {
         if (!config.oauth.consumer_key) {
@@ -350,6 +352,9 @@ var JiraClient = module.exports = function (config) {
         if (this.cookie_jar) {
             options.jar = this.cookie_jar;
         }
+		if (this.requestTimeout) {
+			options['timeout'] = this.requestTimeout;
+		}
 
         if (callback) {
             requestLib(options, function (err, response, body) {
